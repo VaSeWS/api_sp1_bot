@@ -19,7 +19,7 @@ PRAKTIKUM_HEADERS = {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"}
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 log_format = (
-    "%(asctime)s  %(filename)s/%(funcName)s  " 
+    "%(asctime)s  %(filename)s/%(funcName)s  "
     "%(levelname)s  %(message)s  %(name)s"
 )
 logging.basicConfig(
