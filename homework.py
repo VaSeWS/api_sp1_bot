@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 
 import requests
 import telegram
@@ -27,12 +28,11 @@ logging.basicConfig(
     format=log_format,
 )
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
 file_handler = logging.FileHandler("bot.log")
 file_handler.setFormatter(logging.Formatter(log_format))
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 
 
@@ -40,17 +40,28 @@ class WrongResponseFormatException(Exception):
     pass
 
 
+class ResponseCodeIsNot200Exception(Exception):
+    pass
+
+
 def parse_homework_status(homework):
-    if "homework_name" and "status" not in homework.keys():
+    if "status" not in homework or "homework_name" not in homework:
         raise WrongResponseFormatException(
             "Needed keys weren't found in the response"
         )
 
     homework_name = homework["homework_name"]
-    if homework["status"] == "rejected":
+    status = homework["status"]
+    if status == "reviewing":
+        verdict = "Работа была взята на ревью."
+    if status == "rejected":
         verdict = "К сожалению, в работе нашлись ошибки."
-    else:
+    if status == "approved":
         verdict = "Ревьюеру всё понравилось, работа зачтена!"
+    else:
+        raise WrongResponseFormatException(
+            f'Unknown homework status: {status}'
+        )
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -61,8 +72,8 @@ def get_homeworks(current_timestamp):
         headers=PRAKTIKUM_HEADERS,
         params=payload
     )
-    if homework_statuses.status_code != requests.codes.OK:
-        raise requests.HTTPError("HTTP response code is not 200")
+    if homework_statuses.status_code != HTTPStatus.OK:
+        raise ResponseCodeIsNot200Exception("HTTP response code is not 200")
     return homework_statuses.json()
 
 
