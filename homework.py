@@ -52,12 +52,13 @@ def parse_homework_status(homework):
 
     homework_name = homework["homework_name"]
     status = homework["status"]
-    if status == "reviewing":
-        verdict = "Работа была взята на ревью."
-    if status == "rejected":
-        verdict = "К сожалению, в работе нашлись ошибки."
-    if status == "approved":
-        verdict = "Ревьюеру всё понравилось, работа зачтена!"
+    verdicts = {
+        "reviewing": "Работа была взята на ревью.",
+        "approved": "Ревьюеру всё понравилось, работа зачтена!",
+        "rejected": "К сожалению, в работе нашлись ошибки.",
+    }
+    if status in verdicts:
+        verdict = verdicts[status]
     else:
         raise WrongResponseFormatException(
             f'Unknown homework status: {status}'
